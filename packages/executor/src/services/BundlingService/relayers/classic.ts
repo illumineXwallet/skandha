@@ -166,6 +166,7 @@ export class ClassicRelayer extends BaseRelayer {
             await this.handleUserOpFail(entries, err);
           });
       } else {
+        await relayer.provider.call(transaction);
         await relayer
           .sendTransaction(transaction)
           .then(async ({ hash }) => {
@@ -205,6 +206,18 @@ export class ClassicRelayer extends BaseRelayer {
       ...transaction,
       params,
     });
+
+    const resultOrError = await this.provider.call(transaction);
+    if (resultOrError.length > 2) {
+      const iface = IEntryPoint__factory.createInterface();
+      const error = iface.parseError(resultOrError);
+      // throw {
+      //   errorName: error.name,
+      //   errorArgs: error.args,
+      //   ...error,
+      // };
+      throw error
+    }
 
     let hash = "";
     if (this.networkConfig.rpcEndpointSubmit) {
