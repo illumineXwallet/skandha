@@ -30,7 +30,7 @@ jobs:
       -
         name: Get package version
         id: get_version
-        run: echo version=$(git rev-parse --short "$GITHUB_SHA") >> $GITHUB_OUTPUT
+        run: echo version=$(node -p "require('./package.json').version") >> $GITHUB_OUTPUT
       -
         name: Docker meta
         id: meta
