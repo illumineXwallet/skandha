@@ -3,7 +3,7 @@ name: Build skandha unstable docker image
 on:
   push:
     branches:
-      - "develop"
+      - "ix-develop"
 
 jobs:
   build:
