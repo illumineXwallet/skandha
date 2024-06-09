@@ -10,3 +10,4 @@ export { SenderCreator__factory } from "./SenderCreator__factory";
 export { StakeManager__factory } from "./StakeManager__factory";
 export { SimpleAccountFactory__factory } from "./SimpleAccountFactory__factory";
 export { SimpleAccount__factory } from "./SimpleAccount__factory";
+export { LuminexTokenPaymaster__factory } from "./LuminexTokenPaymaster__factory";

@@ -8,4 +8,5 @@ export { SenderCreator } from "./SenderCreator";
 export { StakeManager } from "./StakeManager";
 export { SimpleAccount } from "./SimpleAccount";
 export { SimpleAccountFactory } from "./SimpleAccountFactory";
+export { LuminexTokenPaymaster } from "./LuminexTokenPaymaster";
 export * from "./factories";
