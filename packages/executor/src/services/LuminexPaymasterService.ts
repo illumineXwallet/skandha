@@ -108,9 +108,26 @@ export class LuminexPaymasterService {
     token: string,
     maxAllowance: BigNumberish
   ): string {
+    /*
+     * Packed data struct
+     *
+     * |  validAfter  |  validUntil  |           token           |
+     * |    48 bits   |    48 bits   |          160 bits         |
+     */
+
+    const shiftedAfter = BigNumber.from(validAfter).mul(
+      BigNumber.from(2).pow(160 + 48)
+    );
+    const shiftedUntil = BigNumber.from(validUntil).mul(
+      BigNumber.from(2).pow(160)
+    );
+    const packedData = shiftedAfter
+      .add(shiftedUntil)
+      .add(BigNumber.from(token));
+
     return utils.defaultAbiCoder.encode(
-      ["uint48", "uint48", "address", "uint256"],
-      [validUntil, validAfter, token, maxAllowance]
+      ["uint256", "uint256"],
+      [packedData, maxAllowance]
     );
   }
 
