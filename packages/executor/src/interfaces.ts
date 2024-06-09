@@ -65,6 +65,12 @@ export interface TracerPrestateResponse {
   };
 }
 
+export interface LuminexConfig {
+  proverUntilShift: number
+  proverSignatureTTL: number
+  relayerCacheTTL: number
+}
+
 export type SupportedEntryPoints = string[];
 
 export type EthChainIdResponse = { chainId: number };
@@ -164,6 +170,7 @@ export interface NetworkConfig {
   entryPointForwarder: string;
   // api auth key for echo: https://echo.chainbound.io/docs/usage/api-interface#authentication
   echoAuthKey: string;
+  luminex: LuminexConfig;
 }
 
 export type BundlerConfig = Omit<

@@ -1,4 +1,4 @@
-import { BigNumberish, providers } from "ethers";
+import { BigNumberish, BytesLike, providers } from "ethers";
 import { UserOperationStruct } from "../executor/contracts/EntryPoint";
 import { IWhitelistedEntities } from "../executor";
 
@@ -30,6 +30,10 @@ export type GetFeeHistoryResponse = {
   actualGasPrice: BigNumberish[];
   maxFeePerGas: BigNumberish[];
   maxPriorityFeePerGas: BigNumberish[];
+};
+
+export type SignPaymasterResponse = {
+  paymasterAndData: BytesLike;
 };
 
 export type UserOperationReceipt = {

@@ -1,5 +1,5 @@
 // TODO: create a new package "config" instead of this file and refactor
-import { BigNumber, Wallet, providers, utils } from "ethers";
+import { BigNumber, providers, utils, Wallet } from "ethers";
 import { IEntity, RelayingMode } from "types/lib/executor";
 import { getAddress } from "ethers/lib/utils";
 import { BundlerConfig, ConfigOptions, NetworkConfig } from "./interfaces";
@@ -150,10 +150,7 @@ export class Config {
     );
 
     config.minStake = BigNumber.from(
-      fromEnvVar(
-        "MIN_STAKE",
-        config.minStake ?? bundlerDefaultConfigs.minStake
-      )
+      fromEnvVar("MIN_STAKE", config.minStake ?? bundlerDefaultConfigs.minStake)
     );
     config.minUnstakeDelay = Number(
       fromEnvVar(
@@ -237,10 +234,7 @@ export class Config {
     );
 
     config.banSlack = Number(
-      fromEnvVar(
-        "BAN_SLACK",
-        config.banSlack || bundlerDefaultConfigs.banSlack
-      )
+      fromEnvVar("BAN_SLACK", config.banSlack || bundlerDefaultConfigs.banSlack)
     );
 
     config.minInclusionDenominator = Number(
@@ -261,7 +255,8 @@ export class Config {
     config.skipBundleValidation = Boolean(
       fromEnvVar(
         "SKIP_BUNDLE_VALIDATION",
-        config.skipBundleValidation || bundlerDefaultConfigs.skipBundleValidation
+        config.skipBundleValidation ||
+          bundlerDefaultConfigs.skipBundleValidation
       )
     );
 
@@ -360,6 +355,11 @@ const bundlerDefaultConfigs: BundlerConfig = {
   kolibriAuthKey: "",
   entryPointForwarder: "",
   echoAuthKey: "",
+  luminex: {
+    proverUntilShift: -5,
+    proverSignatureTTL: 60, // 1min
+    relayerCacheTTL: 1200, // 20min
+  },
 };
 
 function getEnvVar<T>(envVar: string, fallback: T): T | string {
