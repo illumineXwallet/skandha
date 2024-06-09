@@ -3,6 +3,7 @@ export const CustomRPCMethods = {
   skandha_config: "skandha_config",
   skandha_feeHistory: "skandha_feeHistory",
   skandha_peers: "skandha_peers",
+  luminex_signPaymaster: "luminex_signPaymaster",
 };
 
 export const BundlerRPCMethods = {

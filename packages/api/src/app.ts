@@ -9,7 +9,7 @@ import {
   HttpStatus,
   RedirectedRPCMethods,
 } from "./constants";
-import { EthAPI, DebugAPI, Web3API, RedirectAPI } from "./modules";
+import { DebugAPI, EthAPI, LuminexAPI, RedirectAPI, Web3API } from "./modules";
 import { deepHexlify } from "./utils";
 import { SkandhaAPI } from "./modules/skandha";
 
@@ -57,6 +57,7 @@ export class ApiApp {
     const web3Api = new Web3API(executor.web3);
     const redirectApi = new RedirectAPI(this.config);
     const skandhaApi = new SkandhaAPI(executor.eth, executor.skandha);
+    const luminexApi = new LuminexAPI(executor.luminex);
 
     const handleRpc = async (
       ip: string,
@@ -185,6 +186,13 @@ export class ApiApp {
             return { jsonrpc, id, result };
           case CustomRPCMethods.skandha_peers:
             result = await skandhaApi.getPeers();
+            break;
+          case CustomRPCMethods.luminex_signPaymaster:
+            result = await luminexApi.signPaymaster({
+              entryPoint: params[0],
+              userOp: params[1],
+              ...params[2]
+            });
             break;
           default:
             throw new RpcError(

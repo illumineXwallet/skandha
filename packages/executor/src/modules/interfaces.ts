@@ -55,3 +55,11 @@ export class SetMempoolArgs {
   userOps!: SendUserOperationStruct[];
   entryPoint!: string;
 }
+
+export class SignPaymasterArgs {
+  userOp!: SendUserOperationStruct;
+  entryPoint!: string;
+  paymaster!: string;
+  token!: string;
+  maxAllowance!: BigNumberish;
+}

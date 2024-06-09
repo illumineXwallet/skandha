@@ -4,14 +4,15 @@ import { IDbController, Logger } from "types/lib";
 import { chainsWithoutEIP1559 } from "params/lib";
 import { PerChainMetrics } from "monitoring/lib";
 import { SkandhaVersion } from "types/lib/executor";
-import { Web3, Debug, Eth, Skandha } from "./modules";
+import { Debug, Eth, Luminex, Skandha, Web3 } from "./modules";
 import {
-  MempoolService,
-  UserOpValidationService,
   BundlingService,
-  ReputationService,
-  P2PService,
   EventsService,
+  LuminexPaymasterService,
+  MempoolService,
+  P2PService,
+  ReputationService,
+  UserOpValidationService,
 } from "./services";
 import { Config } from "./config";
 import { BundlingMode, GetNodeAPI, NetworkConfig } from "./interfaces";
@@ -41,6 +42,7 @@ export class Executor {
   public debug: Debug;
   public eth: Eth;
   public skandha: Skandha;
+  public luminex: Luminex;
 
   public bundlingService: BundlingService;
   public mempoolService: MempoolService;
@@ -48,6 +50,7 @@ export class Executor {
   public reputationService: ReputationService;
   public p2pService: P2PService;
   public eventsService: EventsService;
+  public luminexPaymasterService: LuminexPaymasterService;
 
   private db: IDbController;
 
@@ -81,7 +84,7 @@ export class Executor {
       this.chainId,
       this.provider,
       this.config,
-      this.logger,
+      this.logger
     );
 
     this.userOpValidationService = new UserOpValidationService(
@@ -91,6 +94,12 @@ export class Executor {
       this.chainId,
       this.config,
       this.logger
+    );
+    this.luminexPaymasterService = new LuminexPaymasterService(
+      this.provider,
+      this.config,
+      this.networkConfig,
+      this.userOpValidationService
     );
     this.mempoolService = new MempoolService(
       this.db,
@@ -128,6 +137,11 @@ export class Executor {
       this.mempoolService,
       this.reputationService,
       this.networkConfig
+    );
+
+    this.luminex = new Luminex(
+      this.networkConfig,
+      this.luminexPaymasterService
     );
 
     this.eth = new Eth(
