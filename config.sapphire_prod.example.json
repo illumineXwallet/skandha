@@ -5,8 +5,8 @@
   "rpcEndpoint": "https://sapphire.oasis.io",
   "multicall": "0x24100CAF4209e6c23189c82808fEdCe57972eDc0",
   "whitelistedEntities": {
-    "factory": ["0x80f78DC3AdfdEB0eC2E894cF34281a5043f07f25"],
-    "paymaster": ["0x1732538a29C464c4C0aB4bdf14beBb4DC0D31Ebb"]
+    "factory": ["0x2A822eC5A1C74b7725764eD0aF3b34cb9FC2e7eB"],
+    "paymaster": ["0x672556FF4A4eefe6907461fbf28688FaDdFCACc1"]
   },
   "// receiptLookupRange is set to 90 because sapphire supports 100 max and we deduct some blocks": null,
   "receiptLookupRange": 95
