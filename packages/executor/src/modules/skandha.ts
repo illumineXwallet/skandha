@@ -133,6 +133,7 @@ export class Skandha {
       gasFeeInSimulation: this.networkConfig.gasFeeInSimulation,
       userOpGasLimit: this.networkConfig.userOpGasLimit,
       bundleGasLimit: this.networkConfig.bundleGasLimit,
+      luminex: this.networkConfig.luminex,
     };
   }
 

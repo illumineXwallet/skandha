@@ -90,6 +90,11 @@ export type GetConfigResponse = {
   gasFeeInSimulation: boolean;
   userOpGasLimit: number;
   bundleGasLimit: number;
+  luminex: {
+    proverUntilShift: number;
+    proverSignatureTTL: number;
+    relayerCacheTTL: number;
+  };
 };
 
 export type SupportedEntryPoints = string[];
