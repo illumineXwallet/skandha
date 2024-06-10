@@ -1,12 +1,12 @@
 {
-  "entryPoints": ["0x9C713d2dD0CD83Cf4DCc77F7286E65b468D99293"],
+  "entryPoints": ["0x5d775685DcEaaa3C78E919695b9eF7d978f88bde"],
   "relayers": [
   ],
   "rpcEndpoint": "https://sapphire.oasis.io",
   "multicall": "0x24100CAF4209e6c23189c82808fEdCe57972eDc0",
   "whitelistedEntities": {
-    "factory": ["0x82f21e361155A5F896c8146f40B6900dA7244c67"],
-    "paymaster": ["0xC52195CadC890E6F0bf444E7Ab27EE76C4b5AD74"]
+    "factory": ["0x80f78DC3AdfdEB0eC2E894cF34281a5043f07f25"],
+    "paymaster": ["0x1732538a29C464c4C0aB4bdf14beBb4DC0D31Ebb"]
   },
   "// receiptLookupRange is set to 90 because sapphire supports 100 max and we deduct some blocks": null,
   "receiptLookupRange": 95
