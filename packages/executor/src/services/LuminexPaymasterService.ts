@@ -12,10 +12,7 @@ import { UserOpValidationService } from "./UserOpValidation";
 import { UserOperationStruct } from "types/lib/executor/contracts/EntryPoint";
 import { LuminexTokenPaymaster__factory } from "types/lib/executor/contracts";
 import RpcError from "types/lib/api/errors/rpc-error";
-
-const MAX_TIME = BigNumber.from("0xffffffffffff"); // type(uint48).max
-const MIN_TIME = BigNumber.from(0); // type(uint48).min
-const DUMMY_SIGNATURE = "0x" + "ff".repeat(65); // 65 bytes of FF
+import { ECDSA_DUMMY_SIGNATURE } from "params/lib";
 
 /**
  * Used to prove that user op can really be executed
@@ -46,8 +43,8 @@ export class LuminexPaymasterService {
       ...userOp,
       paymasterAndData: utils.hexConcat([
         paymaster,
-        this.stringifyData(MAX_TIME, MIN_TIME, token, maxAllowance),
-        DUMMY_SIGNATURE,
+        this.stringifyData(0, 0, token, maxAllowance),
+        ECDSA_DUMMY_SIGNATURE,
       ]),
     };
 
