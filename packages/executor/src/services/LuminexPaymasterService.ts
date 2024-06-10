@@ -68,7 +68,7 @@ export class LuminexPaymasterService {
       maxAllowance
     );
 
-    const signature = await relayer.signMessage(hash);
+    const signature = await relayer.signMessage(utils.arrayify(hash));
     return {
       paymasterAndData: utils.hexConcat([
         paymaster,
