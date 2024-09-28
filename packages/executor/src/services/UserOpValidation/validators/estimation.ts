@@ -63,7 +63,10 @@ export class EstimationService {
       })
       .catch((e: any) => nonGethErrorHandler(entryPointContract, e));
 
-    if (errorResult.errorName === "FailedOp") {
+    const hasSimulationSucceeded =
+      errorResult.errorName === "ExecutionResult" &&
+      errorResult.errorArgs.targetSuccess;
+    if (errorResult.errorName === "FailedOp" || !hasSimulationSucceeded) {
       throw new RpcError(
         errorResult.errorArgs.at(-1),
         RpcErrorCodes.VALIDATION_FAILED
