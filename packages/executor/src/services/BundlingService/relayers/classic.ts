@@ -1,13 +1,13 @@
 import { providers } from "ethers";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as sapphire from "@oasisprotocol/sapphire-paratime";
 import { Logger } from "types/lib";
 import { PerChainMetrics } from "monitoring/lib";
 import { IEntryPoint__factory } from "types/lib/executor/contracts";
 import { chainsWithoutEIP1559 } from "params/lib";
 import { AccessList } from "ethers/lib/utils";
-import { MempoolEntryStatus } from "types/lib/executor";
-import { Relayer } from "../interfaces";
 import { Config } from "../../../config";
-import { Bundle, NetworkConfig, StorageMap } from "../../../interfaces";
+import { Bundle, NetworkConfig } from "../../../interfaces";
 import { MempoolService } from "../../MempoolService";
 import { estimateBundleGasLimit } from "../utils";
 import { ReputationService } from "../../ReputationService";
@@ -45,7 +45,7 @@ export class ClassicRelayer extends BaseRelayer {
     const relayer = this.relayers[availableIndex];
     const mutex = this.mutexes[availableIndex];
 
-    const { entries, storageMap } = bundle;
+    const { entries } = bundle;
     if (!bundle.entries.length) {
       this.logger.error("Relayer: Bundle is empty");
       return;
@@ -110,127 +110,18 @@ export class ClassicRelayer extends BaseRelayer {
         nonce: await relayer.getTransactionCount(),
       };
 
-      // geth-dev's jsonRpcSigner doesn't support signTransaction
-      if (!this.config.testingMode) {
-        // check for execution revert
-
-        if (!this.networkConfig.skipBundleValidation) {
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { gasLimit, ...txWithoutGasLimit } = transactionRequest;
-            // some chains, like Bifrost, don't allow setting gasLimit in estimateGas
-            await relayer.estimateGas(txWithoutGasLimit);
-          } catch (err) {
-            this.logger.debug(
-              `${entries
-                .map((entry) => entry.userOpHash)
-                .join("; ")} failed on chain estimation. deleting...`
-            );
-            this.logger.error(err);
-            await this.mempoolService.removeAll(entries);
-            this.reportFailedBundle();
-            return;
-          }
-        }
-
-        this.logger.debug(
-          `Trying to submit userops: ${bundle.entries
-            .map((entry) => entry.userOpHash)
-            .join(", ")}`
-        );
-        await this.submitTransaction(relayer, transaction, storageMap)
-          .then(async (txHash: string) => {
-            this.logger.debug(`Bundle submitted: ${txHash}`);
-            this.logger.debug(
-              `User op hashes ${entries.map((entry) => entry.userOpHash)}`
-            );
-            await this.mempoolService.setStatus(
-              entries,
-              MempoolEntryStatus.Submitted,
-              txHash
-            );
-
-            await this.waitForEntries(entries).catch((err) =>
-              this.logger.error(err, "Relayer: Could not find transaction")
-            );
-            this.reportSubmittedUserops(txHash, bundle);
-          })
-          .catch(async (err: any) => {
-            this.reportFailedBundle();
-            // Put all userops back to the mempool
-            // if some userop failed, it will be deleted inside handleUserOpFail()
-            await this.mempoolService.setStatus(
-              entries,
-              MempoolEntryStatus.New
-            );
-            await this.handleUserOpFail(entries, err);
-          });
-      } else {
-        await relayer.provider.call(transaction);
-        await relayer
-          .sendTransaction(transaction)
-          .then(async ({ hash }) => {
-            this.logger.debug(`Bundle submitted: ${hash}`);
-            this.logger.debug(
-              `User op hashes ${entries.map((entry) => entry.userOpHash)}`
-            );
-            await this.mempoolService.removeAll(entries);
-          })
-          .catch((err: any) => this.handleUserOpFail(entries, err));
-      }
+      await sapphire.wrap(relayer.provider).call(transaction);
+      await sapphire
+        .wrap(relayer)
+        .sendTransaction(transaction)
+        .then(async ({ hash }) => {
+          this.logger.debug(`Bundle submitted: ${hash}`);
+          this.logger.debug(
+            `User op hashes ${entries.map((entry) => entry.userOpHash)}`
+          );
+          await this.mempoolService.removeAll(entries);
+        })
+        .catch((err: any) => this.handleUserOpFail(entries, err));
     });
-  }
-
-  /**
-   * signs & sends a transaction
-   * @param relayer wallet
-   * @param transaction transaction request
-   * @param storageMap storage map
-   * @returns transaction hash
-   */
-  private async submitTransaction(
-    relayer: Relayer,
-    transaction: providers.TransactionRequest,
-    storageMap: StorageMap
-  ): Promise<string> {
-    const signedRawTx = await relayer.signTransaction(transaction);
-    const method = !this.networkConfig.conditionalTransactions
-      ? "eth_sendRawTransaction"
-      : "eth_sendRawTransactionConditional";
-    const params = !this.networkConfig.conditionalTransactions
-      ? [signedRawTx]
-      : [signedRawTx, { knownAccounts: storageMap }];
-
-    this.logger.debug({
-      method,
-      ...transaction,
-      params,
-    });
-
-    const resultOrError = await this.provider.call(transaction);
-    if (resultOrError.length > 2) {
-      const iface = IEntryPoint__factory.createInterface();
-      const error = iface.parseError(resultOrError);
-      // throw {
-      //   errorName: error.name,
-      //   errorArgs: error.args,
-      //   ...error,
-      // };
-      throw error
-    }
-
-    let hash = "";
-    if (this.networkConfig.rpcEndpointSubmit) {
-      this.logger.debug("Sending to a separate rpc");
-      const provider = new providers.JsonRpcProvider(
-        this.networkConfig.rpcEndpointSubmit
-      );
-      hash = await provider.send(method, params);
-    } else {
-      hash = await this.provider.send(method, params);
-    }
-
-    this.logger.debug(`Sent new bundle ${hash}`);
-    return hash;
   }
 }
