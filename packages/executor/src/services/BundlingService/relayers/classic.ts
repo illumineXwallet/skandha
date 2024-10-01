@@ -4,12 +4,9 @@ import * as sapphire from "@oasisprotocol/sapphire-paratime";
 import { Logger } from "types/lib";
 import { PerChainMetrics } from "monitoring/lib";
 import { IEntryPoint__factory } from "types/lib/executor/contracts";
-import { chainsWithoutEIP1559 } from "params/lib";
-import { AccessList } from "ethers/lib/utils";
 import { Config } from "../../../config";
 import { Bundle, NetworkConfig } from "../../../interfaces";
 import { MempoolService } from "../../MempoolService";
-import { estimateBundleGasLimit } from "../utils";
 import { ReputationService } from "../../ReputationService";
 import { BaseRelayer } from "./base";
 
@@ -64,53 +61,16 @@ export class ClassicRelayer extends BaseRelayer {
         [entries.map((entry) => entry.userOp), beneficiary]
       );
 
-      const transactionRequest: providers.TransactionRequest = {
-        to: entryPoint,
-        data: txRequest,
-        type: 2,
-        maxPriorityFeePerGas: bundle.maxPriorityFeePerGas,
-        maxFeePerGas: bundle.maxFeePerGas,
-      };
-
-      if (this.networkConfig.eip2930) {
-        const { storageMap } = bundle;
-        const addresses = Object.keys(storageMap);
-        if (addresses.length) {
-          const accessList: AccessList = [];
-          for (const address of addresses) {
-            const storageKeys = storageMap[address];
-            if (typeof storageKeys == "object") {
-              accessList.push({
-                address,
-                storageKeys: Object.keys(storageKeys),
-              });
-            }
-          }
-          transactionRequest.accessList = accessList;
-        }
-      }
-
-      if (
-        chainsWithoutEIP1559.some((chainId: number) => chainId === this.chainId)
-      ) {
-        transactionRequest.gasPrice = bundle.maxFeePerGas;
-        delete transactionRequest.maxPriorityFeePerGas;
-        delete transactionRequest.maxFeePerGas;
-        delete transactionRequest.type;
-        delete transactionRequest.accessList;
-      }
+      const gasPrice = await this.provider.getGasPrice();
 
       const transaction = {
-        ...transactionRequest,
-        gasLimit: estimateBundleGasLimit(
-          this.networkConfig.bundleGasLimitMarkup,
-          bundle.entries
-        ),
+        to: entryPoint,
+        data: txRequest,
+        gasLimit: 15_000_000,
+        gasPrice: gasPrice.add(gasPrice.div(4)), // 1.25
         chainId: this.provider._network.chainId,
-        nonce: await relayer.getTransactionCount(),
       };
 
-      await sapphire.wrap(relayer.provider).call(transaction);
       await sapphire
         .wrap(relayer)
         .sendTransaction(transaction)
@@ -120,6 +80,8 @@ export class ClassicRelayer extends BaseRelayer {
             `User op hashes ${entries.map((entry) => entry.userOpHash)}`
           );
           await this.mempoolService.removeAll(entries);
+
+          await this.provider.waitForTransaction(hash);
         })
         .catch((err: any) => this.handleUserOpFail(entries, err));
     });

@@ -301,40 +301,6 @@ export class BundlingService {
         mergeStorageMap(bundle.storageMap, validationResult.storageMap);
       }
       bundle.entries.push(entry);
-
-      const { maxFeePerGas, maxPriorityFeePerGas } = bundle;
-      bundle.maxFeePerGas = maxFeePerGas.add(entry.userOp.maxFeePerGas);
-      bundle.maxPriorityFeePerGas = maxPriorityFeePerGas.add(
-        entry.userOp.maxPriorityFeePerGas
-      );
-    }
-
-    // skip gas fee protection on Fuse
-    if (this.provider.network.chainId == 122) {
-      bundle.maxFeePerGas = BigNumber.from(gasFee.maxFeePerGas);
-      bundle.maxPriorityFeePerGas = BigNumber.from(gasFee.maxPriorityFeePerGas);
-      return bundle;
-    }
-
-    if (bundle.entries.length > 1) {
-      // average of userops
-      bundle.maxFeePerGas = bundle.maxFeePerGas.div(bundle.entries.length);
-      bundle.maxPriorityFeePerGas = bundle.maxPriorityFeePerGas.div(
-        bundle.entries.length
-      );
-    }
-
-    // if onchain fee is less than userops fee, use onchain fee
-    if (
-      bundle.maxFeePerGas.gt(gasFee.maxFeePerGas ?? gasFee.gasPrice!) &&
-      bundle.maxPriorityFeePerGas.gt(gasFee.maxPriorityFeePerGas!)
-    ) {
-      bundle.maxFeePerGas = BigNumber.from(
-        gasFee.maxFeePerGas ?? gasFee.gasPrice!
-      );
-      bundle.maxPriorityFeePerGas = BigNumber.from(
-        gasFee.maxPriorityFeePerGas!
-      );
     }
 
     return bundle;
